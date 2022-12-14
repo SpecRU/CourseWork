@@ -75,10 +75,12 @@ void ticket::input(const std::string inpath) {
 			hardPos = hardness(std::wstring(inTmp));
 			modulePos = module(std::wstring(inTmp));
 			if (modulePos) {
+				break; //
 				vars.at(coun).module = std::stoi(&inTmp[hardPos + 8]) + std::stoi(&inTmp[hardPos + 9]);
 				inTmp.erase(inTmp.begin() + hardPos, inTmp.begin() + hardPos + 9);
 			}
 			if (hardPos) {
+				break; //
 				isHard = true;
 				vars.at(coun).diff = std::stoi(&inTmp[hardPos + 2]);
 				inTmp.erase(inTmp.begin() + hardPos, inTmp.begin() + hardPos + 3);
@@ -100,16 +102,22 @@ int ticket::hardness(const std::wstring& in) {
 	std::wsregex_iterator find{ in.begin(), in.end(), temp };
 	std::wsregex_iterator end{};
 
-	for (auto i = find; i != end; ++i) return i->position();
+	for (auto i = find; i != end; ++i) {
+		MessageBox::Show(L"Ошибка открытия файла ввода!", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		return i->position();
+	}
 	return 0;
 }
 
 int ticket::module(const std::wstring& in) {
-	std::wregex temp(L"!Модуль [0-9][0-9]");
+	std::wregex temp(L"\s!Модуль [0-9][0-9]");
 	std::wsregex_iterator find{ in.begin(), in.end(), temp };
 	std::wsregex_iterator end{};
 
-	for (auto i = find; i != end; ++i) return i->position();
+	for (auto i = find; i != end; ++i) {
+		MessageBox::Show(L"Ошибка открытия файла ввода!", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		return i->position();
+	}
 	return 0;
 }
 
