@@ -72,15 +72,13 @@ void ticket::input(const std::string inpath) {
 	if (fin.is_open()) {
 		while (getline(fin, inTmp)) {
 			vars.push_back(initial);
-			hardPos = hardness(std::wstring(inTmp));
-			modulePos = module(std::wstring(inTmp));
+			hardPos = hardness(inTmp);
+			modulePos = module(inTmp);
 			if (modulePos) {
-				break; //
-				vars.at(coun).module = std::stoi(&inTmp[hardPos + 8]) + std::stoi(&inTmp[hardPos + 9]);
-				inTmp.erase(inTmp.begin() + hardPos, inTmp.begin() + hardPos + 9);
+				vars.at(coun).module = std::stoi(&inTmp[modulePos + 8]) + std::stoi(&inTmp[modulePos + 9]);
+				inTmp.erase(inTmp.begin() + modulePos, inTmp.begin() + modulePos + 10);
 			}
 			if (hardPos) {
-				break; //
 				isHard = true;
 				vars.at(coun).diff = std::stoi(&inTmp[hardPos + 2]);
 				inTmp.erase(inTmp.begin() + hardPos, inTmp.begin() + hardPos + 3);
@@ -98,24 +96,22 @@ void ticket::input(const std::string inpath) {
 }
 
 int ticket::hardness(const std::wstring& in) {
-	std::wregex temp(L"\s![1-5]");
-	std::wsregex_iterator find{ in.begin(), in.end(), temp };
+	std::wregex filter(L"![1-5]");
+	std::wsregex_iterator find{ in.begin(), in.end(), filter };
 	std::wsregex_iterator end{};
 
 	for (auto i = find; i != end; ++i) {
-		MessageBox::Show(L"Ошибка открытия файла ввода!", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 		return i->position();
 	}
 	return 0;
 }
 
 int ticket::module(const std::wstring& in) {
-	std::wregex temp(L"\s!Модуль [0-9][0-9]");
-	std::wsregex_iterator find{ in.begin(), in.end(), temp };
+	std::wregex filter(L"!Module [0-9][0-9]");
+	std::wsregex_iterator find{ in.begin(), in.end(), filter };
 	std::wsregex_iterator end{};
 
 	for (auto i = find; i != end; ++i) {
-		MessageBox::Show(L"Ошибка открытия файла ввода!", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 		return i->position();
 	}
 	return 0;
@@ -176,6 +172,44 @@ void ticket::output(const std::vector<varsS>& vec) {
 	}
 }
 
+/*void ticket::randsortfout() {
+	std::vector <varsS> sorted;
+	std::vector <varsS> used;
+	varsS null{ null.diff = 0 };
+	varsS it;
+
+	for (int i = 0; i < vQ; ++i) {
+		sorted.push_back(null);
+		used.clear();
+		for (int k = i * vQ; k < i * vQ + qQ; ++k) {
+			it = vars_substr_vec(used, k);
+			sorted.push_back(it);
+			used.push_back(it);
+		}
+	}
+
+	output(sorted);
+} */
+
+void ticket::randsortfout() {
+	std::vector <varsS> sorted;
+	std::vector <varsS> used;
+	varsS null{ null.diff = 0 };
+	varsS it;
+
+	for (int i = 0; i < vQ; ++i) {
+		sorted.push_back(null);
+		used.clear();
+		for (int k = i * vQ; k < i * vQ + qQ; ++k) {
+			it = vars_substr_vec(used, k);
+			sorted.push_back(it);
+			used.push_back(it);
+		}
+	}
+
+	output(sorted);
+}
+
 void ticket::dumbsortfout() {
 	std::vector <varsS> sorted, inp = vars;
 	varsS null{ null.diff = 0 };
@@ -199,34 +233,6 @@ void ticket::dumbsortfout() {
 	}
 
 	output(sorted);
-}
-
-void ticket::randsortfout() {
-	std::vector <varsS> sorted;
-	std::vector <varsS> used;
-	varsS null{ null.diff = 0 };
-	varsS it;
-
-	for (int i = 0; i < vQ; ++i) {
-		sorted.push_back(null);
-		used.clear();
-		for (int k = i * vQ; k < i * vQ + qQ; ++k) {
-			it = vars_substr_vec(used, k);
-			sorted.push_back(it);
-			used.push_back(it);
-		}
-	}
-
-	output(sorted);
-}
-
-varsS ticket::vars_substr_vec(std::vector<varsS>& used, const int& seed) {
-	std::vector <varsS> vec = vars;
-
-	if (used.size())vec -= used;
-
-	srand(unsigned(time(NULL)) + seed);
-	return vec[(rand() % vec.size() + 1) - 1];
 }
 
 void ticket::balancesortfout() {
@@ -258,16 +264,25 @@ void ticket::balancesortfout() {
 		for (int k = 0; k < in.size(); ++k) {
 			if ((tmp + in.at(k).diff <= mid) && (std::find(used.begin(), used.end(), in[k]) == used.end())) {
 				if (i && in[k] == used1elem) continue;
-					used.push_back(in[k]);
-					tmp += in.at(k).diff;
-					sorted.push_back(in[k]);
-					in.erase(in.begin() + k);
+				used.push_back(in[k]);
+				tmp += in.at(k).diff;
+				sorted.push_back(in[k]);
+				in.erase(in.begin() + k);
 			}
 		}
 	}
 
 	output(sorted);
-} 
+}
+
+varsS ticket::vars_substr_vec(std::vector<varsS>& used, const int& seed) {
+	std::vector <varsS> vec = vars;
+
+	if (used.size())vec -= used;
+
+	srand(unsigned(time(NULL)) + seed);
+	return vec[(rand() % vec.size() + 1) - 1];
+}
 
 bool ticket::hardness() {
 	return isHard;
