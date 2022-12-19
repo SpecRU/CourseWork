@@ -27,10 +27,10 @@ std::string unicode2ansi(const std::wstring& wstr) {
 	return strTo;
 }
 
-bool operator<(const varsS& a, const varsS& b) { return a.diff < b.diff; }
-bool operator==(const varsS& a, const varsS& b) { return a.str == b.str && a.diff == b.diff && a.module == b.module; }
-bool operator!=(const varsS& a, const varsS& b) { return a.str != b.str && a.diff != b.diff && a.module != b.module; }
-void operator-=(std::vector<varsS>& a, const std::vector<varsS>& b)
+//bool operator<(const varsS& a, const varsS& b) { return a.diff < b.diff; }
+//bool operator==(const varsS& a, const varsS& b) { return a.str == b.str && a.diff == b.diff && a.module == b.module; }
+//bool operator!=(const varsS& a, const varsS& b) { return a.str != b.str && a.diff != b.diff && a.module != b.module; }
+/*void operator-=(std::vector<varsS>& a, const std::vector<varsS>& b)
 {
 	std::vector<varsS>::iterator it = a.begin();
 	std::vector<varsS>::const_iterator it2 = b.begin();
@@ -47,7 +47,7 @@ void operator-=(std::vector<varsS>& a, const std::vector<varsS>& b)
 		if (it != a.end()) ++it;
 		it2 = b.begin();
 	}
-}
+} */
 
 void ticket::inputv(const int& vin) {
 	vQ = vin;
@@ -59,12 +59,10 @@ void ticket::inputq(const int& qin) {
 
 void ticket::input() {
 	vars.clear();
-	isHard = false;
 }
 
 void ticket::input(const std::string inpath) {
 	std::wifstream fin(inpath);
-	isHard = false;
 
 	varsS initial;
 	std::wstring inTmp;
@@ -95,17 +93,6 @@ void ticket::input(const std::string inpath) {
 	else MessageBox::Show(L"Ошибка открытия файла ввода!", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 }
 
-int ticket::hardness(const std::wstring& in) {
-	std::wregex filter(L"![1-5]");
-	std::wsregex_iterator find{ in.begin(), in.end(), filter };
-	std::wsregex_iterator end{};
-
-	for (auto i = find; i != end; ++i) {
-		return i->position();
-	}
-	return 0;
-}
-
 int ticket::module(const std::wstring& in) {
 	std::wregex filter(L"!Module [0-9][0-9]");
 	std::wsregex_iterator find{ in.begin(), in.end(), filter };
@@ -126,7 +113,7 @@ int ticket::output()
 	return vars.size();
 }
 
-void ticket::output(const std::vector<varsS>& vec) {
+void ticket::output(const std::vector <std::vector <String>>& vec) {
 	int coun = 0, counv = 0;
 	if (outmode[0] == 'r') {
 		std::ofstream fout("Sorted.rtf");
@@ -141,7 +128,6 @@ void ticket::output(const std::vector<varsS>& vec) {
 				else {
 					++coun;
 					fout << coun << (". ") << unicode2ansi(utf8_decode(i.str));
-					if (isHard) fout << " : " << i.diff;
 					fout << std::endl;
 				}
 			}
@@ -162,7 +148,6 @@ void ticket::output(const std::vector<varsS>& vec) {
 				else {
 					++coun;
 					fout << coun << L". " << i.str;
-					if (isHard) fout << L" : " << i.diff;
 					fout << std::endl;
 				}
 			}
@@ -192,106 +177,27 @@ void ticket::output(const std::vector<varsS>& vec) {
 } */
 
 void ticket::randsortfout() {
-	std::vector <varsS> sorted;
-	std::vector <varsS> used;
-	varsS null{ null.diff = 0 };
-	varsS it;
+	std::vector <std::vector <String>> sorted;
+	std::vector <std::vector <String>> used;
+	
 
-	for (int i = 0; i < vQ; ++i) {
-		sorted.push_back(null);
-		used.clear();
-		for (int k = i * vQ; k < i * vQ + qQ; ++k) {
-			it = vars_substr_vec(used, k);
-			sorted.push_back(it);
-			used.push_back(it);
-		}
-	}
 
 	output(sorted);
 }
 
-void ticket::dumbsortfout() {
-	std::vector <varsS> sorted, inp = vars;
-	varsS null{ null.diff = 0 };
-	std::stable_sort(inp.begin(), inp.end());
-
-	for (int i = 0; i < vQ; ++i) {
-		if (!inp.size()) break;
-
-		sorted.push_back(null);
-
-		if (inp.size() < qQ) {
-			for (const varsS& i : inp) sorted.push_back(i);
-			inp.clear();
-			break;
-		};
-
-		for (int k = 0; k < qQ; ++k) {
-			sorted.push_back(inp[0]);
-			inp.erase(inp.begin());
-		}
-	}
-
-	output(sorted);
-}
-
-void ticket::balancesortfout() {
-	std::vector <varsS> sorted, used, in = vars;
-	varsS used1elem;
-	varsS null{ null.diff = 0 };
-
-	for (int i = in.size(); i <= qQ * vQ; ++i) {
-		in.push_back(vars_substr_vec(used, i));
-	}
-
-	stable_sort(in.rbegin(), in.rend());
-
-	int mid = 0;
-	for (const varsS& i : in) {
-		mid += i.diff;
-	}
-	mid = ceil((mid + .0) / vQ);
-
-	int tmp;
-	for (int i = 0; i < vQ; ++i) {
-		if (i) used1elem = used[0];
-		tmp = 0, used.clear();
-
-		if (!in.size()) break;
-
-		sorted.push_back(null);
-
-		for (int k = 0; k < in.size(); ++k) {
-			if ((tmp + in.at(k).diff <= mid) && (std::find(used.begin(), used.end(), in[k]) == used.end())) {
-				if (i && in[k] == used1elem) continue;
-				used.push_back(in[k]);
-				tmp += in.at(k).diff;
-				sorted.push_back(in[k]);
-				in.erase(in.begin() + k);
-			}
-		}
-	}
-
-	output(sorted);
-}
-
-varsS ticket::vars_substr_vec(std::vector<varsS>& used, const int& seed) {
+/*varsS ticket::vars_substr_vec(std::vector<varsS>& used, const int& seed) {
 	std::vector <varsS> vec = vars;
 
 	if (used.size())vec -= used;
 
 	srand(unsigned(time(NULL)) + seed);
 	return vec[(rand() % vec.size() + 1) - 1];
-}
-
-bool ticket::hardness() {
-	return isHard;
-}
+} */
 
 std::string FilePath;
 ticket construct;
 [STAThreadAttribute]
-void main(array<String^>^ args) {
+int main(array<String^>^ args) {
 	Application::EnableVisualStyles();
 	Application::SetCompatibleTextRenderingDefault(false);
 	CourseWork::MyForm form;
@@ -402,17 +308,9 @@ System::Void CourseWork::MyForm::buttonEDIT_SAVE_Click(System::Object^ sender, S
 		strwr->Close();
 		construct.input();
 		construct.input(FilePath);
-		if (construct.hardness() == 0) {
-			radioButtonBalance->Enabled = false;
-			radioButtonDiff->Enabled = false;
-			radioButtonRandom->Enabled = true;
-		}
-		else
-		{
-			radioButtonBalance->Enabled = true;
-			radioButtonDiff->Enabled = true;
-			radioButtonRandom->Enabled = true;
-		}
+		radioButtonBalance->Enabled = false;
+		radioButtonDiff->Enabled = false;
+		radioButtonRandom->Enabled = true;
 	}
 }
 //Все что связано с [buttonDELETE]
@@ -502,26 +400,14 @@ System::Void CourseWork::MyForm::buttonOutput_MouseClick(System::Object^ sender,
 			//return System::Void();
 		}
 	}
-	else if (radioButtonBalance->Checked) {
-		if (checkBoxTXT->Checked) {
-			construct.balancesortfout();
-			Process::Start(L"Sorted.txt");
-			//return System::Void();
-		}
-		else {
-			construct.balancesortfout();
-			Process::Start(L"Sorted.rtf");
-			//return System::Void();
-		}
-	}
 	else {
 		if (checkBoxTXT->Checked) {
-			construct.dumbsortfout();
+			//construct.dumbsortfout();
 			Process::Start(L"Sorted.txt");
 			//return System::Void();
 		}
 		else {
-			construct.dumbsortfout();
+			//construct.dumbsortfout();
 			Process::Start(L"Sorted.rtf");
 			//return System::Void();
 		}
@@ -581,6 +467,7 @@ System::Void CourseWork::MyForm::labelOutputInfo_MouseHover(System::Object^ send
 	toolTip1->Show(L"Чтобы задать сложность предложения в нужной части текста напишите через пробел [ !(1-5)]\nВнимание! для работы [Баланс] и [по Сложности] перед вводом сложности обязательно должен быть минимум 1 символ\n(Образец ввода)\nЯблоко !5Машина\nЯблоко Машина !5\nЯбл !5око Машина\nНо не  !5Яблоко Машина!", labelOutputInfo);
 	//return System::Void();
 }
+
 //Все что связано с [textBox(Num)_ValueChanged]
 System::Void CourseWork::MyForm::textBox1_ValueChanged(System::Object^ sender, System::EventArgs^ e)
 {

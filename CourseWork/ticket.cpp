@@ -16,7 +16,7 @@ std::string unicode2ansi(const std::wstring& wstr) {
 	return strTo;
 }
 
-bool operator<(const varsS& a, const varsS& b) { return a.diff < b.diff; }
+/*bool operator<(const varsS& a, const varsS& b) { return a.diff < b.diff; }
 bool operator==(const varsS& a, const varsS& b) { return a.str == b.str && a.diff == b.diff; }
 bool operator!=(const varsS& a, const varsS& b) { return a.str != b.str && a.diff != b.diff; }
 void operator-=(std::vector<varsS>& a, const std::vector<varsS>& b)
@@ -36,7 +36,7 @@ void operator-=(std::vector<varsS>& a, const std::vector<varsS>& b)
 		if (it != a.end()) ++it;
 		it2 = b.begin();
 	}
-}
+} */
 
 void ticket::inputv(const int& vin) {
 	vQ = vin;
