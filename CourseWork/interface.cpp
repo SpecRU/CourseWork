@@ -27,6 +27,15 @@ std::string unicode2ansi(const std::wstring& wstr) {
 	return strTo;
 }
 
+std::random_device rd;
+std::mt19937 gen(rd());
+
+int random(int min, int max)
+{
+	std::uniform_int_distribution<> dist(min, max);
+	return dist(gen);
+}
+
 //bool operator<(const varsS& a, const varsS& b) { return a.diff < b.diff; }
 //bool operator==(const varsS& a, const varsS& b) { return a.str == b.str && a.diff == b.diff && a.module == b.module; }
 //bool operator!=(const varsS& a, const varsS& b) { return a.str != b.str && a.diff != b.diff && a.module != b.module; }
@@ -50,38 +59,45 @@ std::string unicode2ansi(const std::wstring& wstr) {
 } */
 
 void ticket::variants(const int& variants) {
-	variant_quantity = variants;
+	variants_quantity = variants;
 }
 
-void ticket::vars_clear() {
+void ticket::clear() {
 	vars.clear();
+	tasks_per_module_quantity.clear();
+	variants_quantity = 0;
+	output_mode[1] = { 't' };
 }
 
-void ticket::tasks(const int& tasks) {
-	tasks_quantity = tasks;
-}
 
 short int ticket::scan(const std::string input_path) {
 	std::wifstream input_stream(input_path);
 	std::wstring input_Tmp;
-	std::vector <std::wstring> init;
-	vars.push_back(init);
+	std::vector <std::wstring> init, pattern;
 
-	int modulePos = 0, module_out_quantity = -1, i = 0, scanned_tasks_quantity = 0;
+	int moduleVal = 0, i = 0, scanned_tasks_quantity = 0;
 	if (input_stream.is_open()) {
 		while (getline(input_stream, input_Tmp)) {
-			modulePos = module(input_Tmp);
-			if (modulePos) {
-				module_out_quantity = std::stoi(&input_Tmp[modulePos + 8]) * 10 + std::stoi(&input_Tmp[modulePos + 9]);
-				vars[i].push_back(std::to_wstring(module_out_quantity));
+			OutputDebugStringW(input_Tmp.c_str());
+			OutputDebugStringW(L"\n");
+			//error somewhere here
+			moduleVal = module(input_Tmp);
+			if (moduleVal) {
+				tasks_per_module_quantity.push_back(moduleVal);
 				vars.push_back(init);
-				input_Tmp.erase(input_Tmp.begin() + modulePos, input_Tmp.begin() + modulePos + 10);
 				scanned_tasks_quantity = 0;
+				moduleVal = 0;
 				++i;
+				continue;
+			}
+			if (!moduleVal && !vars.size()) {
+				vars.push_back(init);
 			}
 			++scanned_tasks_quantity;
-			if (module_out_quantity > scanned_tasks_quantity && module_out_quantity != -1) {
-				return 2;
+			if (tasks_per_module_quantity.size() > 0) {
+				if (tasks_per_module_quantity[i] > scanned_tasks_quantity) {
+					return 2;
+				}
 			}
 			vars[i].push_back(input_Tmp);
 		};
@@ -94,14 +110,29 @@ short int ticket::scan(const std::string input_path) {
 }
 
 int ticket::module(const std::wstring& str) {
-	std::wregex filter(L"\n!Module [0-9][0-9]");
-	std::wsregex_iterator find{ str.begin(), str.end(), filter };
-	std::wsregex_iterator end{};
+	std::wstring b = L"", a = L"Module";
 
-	for (auto i = find; i != end; ++i) {
-		return i->position();
+	if (str.length() > 6) {
+		if (str[6] == L' ') {
+			for (int i = 0; i < 6; ++i) {
+				if (str[i] != a[i]) {
+					break;
+				}
+				if (i == 5) {
+					for (int i = 7; i < str.length(); ++i) {
+						b += str[i];
+					}
+				}
+			}
+		}
 	}
-	return 0;
+
+	try {
+		return std::stoi(b);
+	}
+	catch (const std::invalid_argument&) {
+		return 0;
+	}
 }
 
 void ticket::fprint_mode(const char& mode) {
@@ -169,9 +200,23 @@ void ticket::fprint(const std::vector <std::vector <std::wstring>>& vec) {
 
 void ticket::random_fprint() {
 	std::vector <std::vector <std::wstring>> sorted;
-	
+	std::vector <std::wstring> init;
 
-	//size(sorted);
+	if (!tasks_per_module_quantity.size()) {
+		//make random without modules
+		MessageBox::Show(L"Код гавно", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+	}
+
+	for (int i = 0; i < variants_quantity; ++i) {
+		sorted.push_back(init);
+		for (int k = 0; k < vars.size(); ++k) {
+			for (int j = 0; j < tasks_per_module_quantity[k]; ++j) {
+				sorted[i].push_back(vars[k][random(0, vars[k].size())]);
+			}
+		}
+	}
+
+	fprint(sorted);
 }
 
 /*varsS ticket::vars_substr_vec(std::vector<varsS>& used, const int& seed) {
@@ -210,7 +255,7 @@ System::Void CourseWork::MyForm::выходToolStripMenuItem_Click(System::Objec
 
 System::Void CourseWork::MyForm::открытьToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e)
 {
-	processing_class.vars_clear();
+	processing_class.clear();
 	radioButtonRandom->Enabled = false;
 	radioButtonBalance->Enabled = false;
 	radioButtonDiff->Enabled = false;
@@ -244,9 +289,10 @@ System::Void CourseWork::MyForm::открытьToolStripMenuItem_Click(System::O
 		StreamReader^ file = File::OpenText(FilenameOpen);
 		textBoxOutput->Text = file->ReadToEnd();
 		file->Close();
-		processing_class.vars_clear();
+		processing_class.clear();
+		FilePath = marshal_as<std::string>(FilenameOpen);
 		//MessageBox::Show(this, FilenameOpen, L"Инфо", MessageBoxButtons::OK, MessageBoxIcon::Error);
-		short int err = processing_class.scan(marshal_as<std::string>(FilenameOpen));
+		short int err = processing_class.scan(FilePath);
 		if (err == 1) {
 			throw 1;
 		}
@@ -256,16 +302,16 @@ System::Void CourseWork::MyForm::открытьToolStripMenuItem_Click(System::O
 	}
 	catch (short int err) {
 		if (err == 1) {
-			MessageBox::Show(L"Ошибка открытия файла ввода", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+			MessageBox::Show(L"Ошибка открытия файла ввода (1)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 			CourseWork::MyForm::Clear();
 		}
 		if (err == 2) {
-			MessageBox::Show(L"Ошибка, количество выводимых вопросов превышает их число", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+			MessageBox::Show(L"Ошибка, количество выводимых вопросов превышает их число (2)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 			CourseWork::MyForm::Clear();
 		}
 	}
 	catch (Exception^ e) {
-		MessageBox::Show(this, L"Ошибка чтения файла", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		MessageBox::Show(this, L"Ошибка чтения файла (e)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 		CourseWork::MyForm::Clear();
 	}
 	//return System::Void();
@@ -306,7 +352,7 @@ System::Void CourseWork::MyForm::buttonEDIT_SAVE_Click(System::Object^ sender, S
 		StreamWriter^ strwr = gcnew StreamWriter(marshal_as<String^>(FilePath));
 		strwr->Write(textBoxOutput->Text);
 		strwr->Close();
-		processing_class.vars_clear();
+		processing_class.clear();
 		processing_class.scan(FilePath);
 		radioButtonBalance->Enabled = false;
 		radioButtonDiff->Enabled = false;
@@ -328,7 +374,7 @@ System::Void CourseWork::MyForm::Clear()
 {
 	textBox1->Text = "0";
 	textBoxOutput->Text = "";
-	processing_class.vars_clear();
+	processing_class.clear();
 	textBox1->Enabled = false;
 	textBoxOutput->Enabled = false;
 	buttonEDIT->Enabled = false;

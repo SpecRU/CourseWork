@@ -24,15 +24,13 @@ std::string unicode2ansi(const std::wstring& wstr);
 
 class ticket {
     std::vector <std::vector <std::wstring>> vars; //Список задач
-    int variant_quantity;
-    int tasks_quantity;
+    std::vector <int> tasks_per_module_quantity; //Список количества задач для вывода
+    int variants_quantity = 0; //Количество вариантов
     char output_mode[1]{ 't' }; //Режим вывода
 public:
     ~ticket() = default;
 
-    void vars_clear();
-
-    void tasks(const int& tasks);
+    void clear();
 
     void variants(const int& variants);
 
