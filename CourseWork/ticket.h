@@ -23,28 +23,28 @@ std::string unicode2ansi(const std::wstring& wstr);
 //void operator-=(std::vector<varsS>& a, const std::vector<varsS>& b);
 
 class ticket {
-    std::vector <std::vector <String>> vars; //Список задач
-    int vQ; //vQ - количество вариантов 
-    int qQ; // qQ - количество вопросов
-    char outmode[1]{ 't' }; //Режим вывода
+    std::vector <std::vector <std::wstring>> vars; //Список задач
+    int variant_quantity; //vQ - количество вариантов 
+    int tasks_quantity; // qQ - количество вопросов
+    char output_mode[1]{ 't' }; //Режим вывода
 public:
-    void inputq(const int& qin);
+    ~ticket() = default;
 
-    void inputv(const int& vin);
+    void tasks(const int& tasks);
 
-    void output(const char& outm);
+    void variants(const int& variants);
 
-    int output();
+    void fprint_mode(const char& mode);
 
-    void output(const std::vector <std::vector <String>>& vec);
+    void fprint(const std::vector <std::vector <std::wstring>>& vec);
 
-    void input(const std::string inpath);
+    void scan(const std::string input_path);
 
-    void input();
+    int module(const std::wstring& str);
 
-    int module(const std::wstring& in);
+    int size();
 
-    void randsortfout();
+    void random_fprint();
 
     //varsS vars_substr_vec(std::vector<varsS>& used, const int& seed);
 };
