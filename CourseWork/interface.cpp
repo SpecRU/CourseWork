@@ -49,41 +49,53 @@ std::string unicode2ansi(const std::wstring& wstr) {
 	}
 } */
 
-void ticket::variants(const int& vin) {
-	variant_quantity = vin;
+void ticket::variants(const int& variants) {
+	variant_quantity = variants;
 }
 
-void ticket::tasks(const int& qin) {
-	tasks_quantity = qin;
+void ticket::vars_clear() {
+	vars.clear();
 }
 
-void ticket::scan(const std::string inpath) {
-	std::wifstream fin(inpath);
-	std::wstring inTmp;
+void ticket::tasks(const int& tasks) {
+	tasks_quantity = tasks;
+}
 
-	int modulePos, module_out_quantity = -1, i = 0, coun = 0;
-	if (fin.is_open()) {
-		while (getline(fin, inTmp)) {
-			modulePos = module(inTmp);
+short int ticket::scan(const std::string input_path) {
+	std::wifstream input_stream(input_path);
+	std::wstring input_Tmp;
+	std::vector <std::wstring> init;
+	vars.push_back(init);
+
+	int modulePos = 0, module_out_quantity = -1, i = 0, scanned_tasks_quantity = 0;
+	if (input_stream.is_open()) {
+		while (getline(input_stream, input_Tmp)) {
+			modulePos = module(input_Tmp);
 			if (modulePos) {
-				module_out_quantity = std::stoi(&inTmp[modulePos + 8]) * 10 + std::stoi(&inTmp[modulePos + 9]);
-				vars.at(i).push_back(std::to_wstring(module_out_quantity));
-				inTmp.erase(inTmp.begin() + modulePos, inTmp.begin() + modulePos + 10);
-				coun = 0;
+				module_out_quantity = std::stoi(&input_Tmp[modulePos + 8]) * 10 + std::stoi(&input_Tmp[modulePos + 9]);
+				vars[i].push_back(std::to_wstring(module_out_quantity));
+				vars.push_back(init);
+				input_Tmp.erase(input_Tmp.begin() + modulePos, input_Tmp.begin() + modulePos + 10);
+				scanned_tasks_quantity = 0;
 				++i;
 			}
-			++coun;
-			if (module_out_quantity > coun && module_out_quantity != -1) MessageBox::Show(L"Ошибка, количество выводимых вопросов превышает их число!", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
-			vars.at(i).push_back(inTmp);
+			++scanned_tasks_quantity;
+			if (module_out_quantity > scanned_tasks_quantity && module_out_quantity != -1) {
+				return 2;
+			}
+			vars[i].push_back(input_Tmp);
 		};
-		fin.close();
-		}
-	else MessageBox::Show(L"Ошибка открытия файла ввода!", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		input_stream.close();
+		return 0;
+	}
+	else {
+		return 1;
+	}
 }
 
-int ticket::module(const std::wstring& in) {
-	std::wregex filter(L"!Module [0-9][0-9]");
-	std::wsregex_iterator find{ in.begin(), in.end(), filter };
+int ticket::module(const std::wstring& str) {
+	std::wregex filter(L"\n!Module [0-9][0-9]");
+	std::wsregex_iterator find{ str.begin(), str.end(), filter };
 	std::wsregex_iterator end{};
 
 	for (auto i = find; i != end; ++i) {
@@ -92,8 +104,8 @@ int ticket::module(const std::wstring& in) {
 	return 0;
 }
 
-void ticket::fprint_mode(const char& outm) {
-	output_mode[0] = outm;
+void ticket::fprint_mode(const char& mode) {
+	output_mode[0] = mode;
 }
 
 int ticket::size()
@@ -117,7 +129,7 @@ void ticket::fprint(const std::vector <std::vector <std::wstring>>& vec) {
 				fout.close();
 			}
 		}
-		else MessageBox::Show(L"Ошибка открытия файла вывода!", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		else MessageBox::Show(L"Ошибка открытия файла вывода", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 	}
 	else {
 		std::wofstream fout("Sorted.txt");
@@ -132,7 +144,7 @@ void ticket::fprint(const std::vector <std::vector <std::wstring>>& vec) {
 				fout.close();
 			}
 		}
-		else MessageBox::Show(L"Ошибка открытия файла вывода!", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		else MessageBox::Show(L"Ошибка открытия файла вывода", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 	}
 }
 
@@ -156,13 +168,10 @@ void ticket::fprint(const std::vector <std::vector <std::wstring>>& vec) {
 } */
 
 void ticket::random_fprint() {
-	std::vector <std::vector <String>> sorted;
-	std::vector <std::vector <String>> used;
+	std::vector <std::vector <std::wstring>> sorted;
 	
 
-
-
-	size(sorted);
+	//size(sorted);
 }
 
 /*varsS ticket::vars_substr_vec(std::vector<varsS>& used, const int& seed) {
@@ -175,7 +184,7 @@ void ticket::random_fprint() {
 } */
 
 std::string FilePath;
-ticket construct;
+ticket processing_class;
 [STAThreadAttribute]
 int main(array<String^>^ args) {
 	Application::EnableVisualStyles();
@@ -201,7 +210,7 @@ System::Void CourseWork::MyForm::выходToolStripMenuItem_Click(System::Objec
 
 System::Void CourseWork::MyForm::открытьToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e)
 {
-	construct.~ticket();
+	processing_class.vars_clear();
 	radioButtonRandom->Enabled = false;
 	radioButtonBalance->Enabled = false;
 	radioButtonDiff->Enabled = false;
@@ -215,9 +224,7 @@ System::Void CourseWork::MyForm::открытьToolStripMenuItem_Click(System::O
 	buttonDELETE_CONFIRM->Enabled = false;
 	buttonDELETE->Enabled = false;
 	textBox1->Enabled = true;
-	textBox2->Enabled = true;
 	textBox1->Text = "0";
-	textBox2->Text = "0";
 	textBoxOutput->Text = "";
 	buttonEDIT_SAVE->Enabled = true;
 	String^ FilenameOpen = "";
@@ -234,17 +241,32 @@ System::Void CourseWork::MyForm::открытьToolStripMenuItem_Click(System::O
 
 	}
 	try {
-
 		StreamReader^ file = File::OpenText(FilenameOpen);
 		textBoxOutput->Text = file->ReadToEnd();
 		file->Close();
-		construct.~ticket();
-		FilePath = marshal_as<std::string>(FilenameOpen);
+		processing_class.vars_clear();
 		//MessageBox::Show(this, FilenameOpen, L"Инфо", MessageBoxButtons::OK, MessageBoxIcon::Error);
-		construct.scan(FilePath);
+		short int err = processing_class.scan(marshal_as<std::string>(FilenameOpen));
+		if (err == 1) {
+			throw 1;
+		}
+		if (err == 2) {
+			throw 2;
+		}
+	}
+	catch (short int err) {
+		if (err == 1) {
+			MessageBox::Show(L"Ошибка открытия файла ввода", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+			CourseWork::MyForm::Clear();
+		}
+		if (err == 2) {
+			MessageBox::Show(L"Ошибка, количество выводимых вопросов превышает их число", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+			CourseWork::MyForm::Clear();
+		}
 	}
 	catch (Exception^ e) {
-		MessageBox::Show(this, L"Неудачно", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		MessageBox::Show(this, L"Ошибка чтения файла", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		CourseWork::MyForm::Clear();
 	}
 	//return System::Void();
 }
@@ -256,7 +278,6 @@ System::Void CourseWork::MyForm::buttonEDIT_Click(System::Object^ sender, System
 	buttonEDIT_SAVE->Enabled = true;
 	buttonEDIT->Enabled = false;
 	textBox1->Enabled = true;
-	textBox2->Enabled = true;
 	textBoxOutput->Enabled = true;
 	radioButtonRandom->Enabled = false;
 	radioButtonBalance->Enabled = false;
@@ -271,7 +292,7 @@ System::Void CourseWork::MyForm::buttonEDIT_Click(System::Object^ sender, System
 }
 System::Void CourseWork::MyForm::buttonEDIT_SAVE_Click(System::Object^ sender, System::EventArgs^ e)
 {
-	if ((textBox1->Text == "0" && textBox2->Text == "0") || (textBox1->Text != "0" && textBox2->Text == "0") || (textBox1->Text == "0" && textBox2->Text != "0")) {
+	if (textBox1->Text == "0") {
 		MessageBox::Show(this, L"Введите количество больше 0", L"Внимание", MessageBoxButtons::OK, MessageBoxIcon::Warning);
 		return System::Void();
 	}
@@ -279,15 +300,14 @@ System::Void CourseWork::MyForm::buttonEDIT_SAVE_Click(System::Object^ sender, S
 		buttonDELETE_CONFIRM->Enabled = false;
 		buttonEDIT_SAVE->Enabled = false;
 		textBox1->Enabled = false;
-		textBox2->Enabled = false;
 		textBoxOutput->Enabled = false;
 		buttonEDIT_SAVE->Enabled = false;
 		buttonEDIT->Enabled = true;
 		StreamWriter^ strwr = gcnew StreamWriter(marshal_as<String^>(FilePath));
 		strwr->Write(textBoxOutput->Text);
 		strwr->Close();
-		construct.~ticket();
-		construct.scan(FilePath);
+		processing_class.vars_clear();
+		processing_class.scan(FilePath);
 		radioButtonBalance->Enabled = false;
 		radioButtonDiff->Enabled = false;
 		radioButtonRandom->Enabled = true;
@@ -301,12 +321,15 @@ System::Void CourseWork::MyForm::buttonDELETE_Click(System::Object^ sender, Syst
 }
 System::Void CourseWork::MyForm::buttonDELETE_CONFIRM_Click(System::Object^ sender, System::EventArgs^ e)
 {
+	CourseWork::MyForm::Clear();
+}
+
+System::Void CourseWork::MyForm::Clear()
+{
 	textBox1->Text = "0";
-	textBox2->Text = "0";
 	textBoxOutput->Text = "";
-	construct.~ticket();
+	processing_class.vars_clear();
 	textBox1->Enabled = false;
-	textBox2->Enabled = false;
 	textBoxOutput->Enabled = false;
 	buttonEDIT->Enabled = false;
 	buttonEDIT_SAVE->Enabled = false;
@@ -322,6 +345,7 @@ System::Void CourseWork::MyForm::buttonDELETE_CONFIRM_Click(System::Object^ send
 	checkBoxRTF->Enabled = false;
 	//return System::Void();
 }
+
 //Все что связано с [radioButton(Type)]
 System::Void CourseWork::MyForm::radioButtonRandom_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
 {
@@ -370,12 +394,12 @@ System::Void CourseWork::MyForm::buttonOutput_MouseClick(System::Object^ sender,
 	buttonDELETE_CONFIRM->Enabled = false;
 	if (radioButtonRandom->Checked) {
 		if (checkBoxTXT->Checked) {
-			construct.random_fprint();
+			processing_class.random_fprint();
 			Process::Start(L"Sorted.txt");
 			//return System::Void();
 		}
 		else {
-			construct.random_fprint();
+			processing_class.random_fprint();
 			Process::Start(L"Sorted.rtf");
 			//return System::Void();
 		}
@@ -397,11 +421,6 @@ System::Void CourseWork::MyForm::buttonOutput_MouseClick(System::Object^ sender,
 System::Void CourseWork::MyForm::textBox11_MouseHover(System::Object^ sender, System::EventArgs^ e)
 {
 	toolTip1->Show(L"Отвечает за то, на сколько вариантов будет раздроблен текст", textBox11);
-	//return System::Void();
-}
-System::Void CourseWork::MyForm::textBox22_MouseHover(System::Object^ sender, System::EventArgs^ e)
-{
-	toolTip1->Show(L"Отвечает за то, сколько вопросов будет в варианте", textBox22);
 	//return System::Void();
 }
 
@@ -457,30 +476,15 @@ System::Void CourseWork::MyForm::textBox1_ValueChanged(System::Object^ sender, S
 	else {
 		buttonDELETE->Enabled = true;
 		buttonEDIT->Enabled = false;
-		construct.variants(stoi(marshal_as<std::string>(textBox1->Text)));
+		processing_class.variants(stoi(marshal_as<std::string>(textBox1->Text)));
 	}
 }
 
-System::Void CourseWork::MyForm::textBox2_ValueChanged(System::Object^ sender, System::EventArgs^ e)
-{
-	if (construct.size() < stoi(marshal_as<std::string>(textBox2->Text))) {
-		MessageBox::Show(this, L"Число вопросов должно быть больше чем строк на вводе", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
-		return System::Void();
-	}
-	if (textBox2->Text == "0") {
-		return System::Void();
-	}
-	else {
-		buttonDELETE->Enabled = true;
-		buttonEDIT->Enabled = false;
-		construct.tasks(stoi(marshal_as<std::string>(textBox2->Text)));
-	}
-}
 //Все что связано с [checkBox(Type)_CheckedChanged]
 System::Void CourseWork::MyForm::checkBoxTXT_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
 {
 	if (checkBoxTXT->Checked) {
-		construct.fprint_mode('t');
+		processing_class.fprint_mode('t');
 		checkBoxRTF->Enabled = false;
 		buttonOutput->Enabled = true;
 	}
@@ -494,7 +498,7 @@ System::Void CourseWork::MyForm::checkBoxTXT_CheckedChanged(System::Object^ send
 System::Void CourseWork::MyForm::checkBoxRTF_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
 {
 	if (checkBoxRTF->Checked) {
-		construct.fprint_mode('r');
+		processing_class.fprint_mode('r');
 		checkBoxTXT->Enabled = false;
 		buttonOutput->Enabled = true;
 	}

@@ -24,11 +24,13 @@ std::string unicode2ansi(const std::wstring& wstr);
 
 class ticket {
     std::vector <std::vector <std::wstring>> vars; //Список задач
-    int variant_quantity; //vQ - количество вариантов 
-    int tasks_quantity; // qQ - количество вопросов
+    int variant_quantity;
+    int tasks_quantity;
     char output_mode[1]{ 't' }; //Режим вывода
 public:
     ~ticket() = default;
+
+    void vars_clear();
 
     void tasks(const int& tasks);
 
@@ -38,7 +40,7 @@ public:
 
     void fprint(const std::vector <std::vector <std::wstring>>& vec);
 
-    void scan(const std::string input_path);
+    short int scan(const std::string input_path);
 
     int module(const std::wstring& str);
 
@@ -48,4 +50,4 @@ public:
 
     //varsS vars_substr_vec(std::vector<varsS>& used, const int& seed);
 };
-extern ticket construct;
+extern ticket processing_class;
