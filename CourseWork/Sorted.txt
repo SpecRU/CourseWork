@@ -1,0 +1,25 @@
+
+Вариант 1:
+1. Car
+2. Car
+3. Persik
+
+Вариант 2:
+1. Persik
+2. Car
+3. Car
+
+Вариант 3:
+1. Cat
+2. Dinya
+3. Arbuz
+
+Вариант 4:
+1. Persik
+2. Arbuz
+3. Car
+
+Вариант 5:
+1. Dog
+2. Arbuz
+3. Garik

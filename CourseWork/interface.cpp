@@ -65,7 +65,6 @@ void ticket::variants(const int& variants) {
 void ticket::clear() {
 	vars.clear();
 	tasks_per_module_quantity.clear();
-	variants_quantity = 0;
 	output_mode[1] = { 't' };
 }
 
@@ -73,34 +72,28 @@ void ticket::clear() {
 short int ticket::scan(const std::string input_path) {
 	std::wifstream input_stream(input_path);
 	std::wstring input_Tmp;
-	std::vector <std::wstring> init, pattern;
 
-	int moduleVal = 0, i = 0, scanned_tasks_quantity = 0;
+
+	int moduleVal = 0, i = -1, scanned_tasks_quantity = 0;
 	if (input_stream.is_open()) {
 		while (getline(input_stream, input_Tmp)) {
-			OutputDebugStringW(input_Tmp.c_str());
-			OutputDebugStringW(L"\n");
-			//error somewhere here
+			if (input_Tmp == L"") continue;
 			moduleVal = module(input_Tmp);
+			if (!moduleVal && i == -1) {
+				return 3;
+			}
 			if (moduleVal) {
 				tasks_per_module_quantity.push_back(moduleVal);
-				vars.push_back(init);
 				scanned_tasks_quantity = 0;
 				moduleVal = 0;
 				++i;
+				vars.resize(i+1);
 				continue;
 			}
-			if (!moduleVal && !vars.size()) {
-				vars.push_back(init);
-			}
 			++scanned_tasks_quantity;
-			if (tasks_per_module_quantity.size() > 0) {
-				if (tasks_per_module_quantity[i] > scanned_tasks_quantity) {
-					return 2;
-				}
-			}
 			vars[i].push_back(input_Tmp);
 		};
+		if (tasks_per_module_quantity[i] > scanned_tasks_quantity) return 2;
 		input_stream.close();
 		return 0;
 	}
@@ -119,8 +112,8 @@ int ticket::module(const std::wstring& str) {
 					break;
 				}
 				if (i == 5) {
-					for (int i = 7; i < str.length(); ++i) {
-						b += str[i];
+					for (int k = 7; k < str.length(); ++k) {
+						b += str[k];
 					}
 				}
 			}
@@ -145,7 +138,7 @@ int ticket::size()
 }
 
 void ticket::fprint(const std::vector <std::vector <std::wstring>>& vec) {
-	int current_variant = 0, current_task = 1;
+	int current_variant = 1, current_task = 1;
 
 	if (output_mode[0] == 'r') {
 		std::ofstream fout("Sorted.rtf");
@@ -154,11 +147,12 @@ void ticket::fprint(const std::vector <std::vector <std::wstring>>& vec) {
 				current_task = 1;
 				fout << std::endl << "Вариант " << current_variant << ":" << std::endl;
 				for (int k = 0; k < vec[i].size(); ++k) {
-					fout << current_task << (". ") << unicode2ansi(utf8_decode(vec[i][k]));
+					fout << current_task << (". ") << unicode2ansi(utf8_decode(vec[i][k])) << std::endl;
 					++current_task;
 				}
-				fout.close();
+				++current_variant;
 			}
+			fout.close();
 		}
 		else MessageBox::Show(L"Ошибка открытия файла вывода", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 	}
@@ -169,53 +163,32 @@ void ticket::fprint(const std::vector <std::vector <std::wstring>>& vec) {
 				current_task = 1;
 				fout << std::endl << L"ÐÐ°ÑÐ¸Ð°Ð½Ñ " << current_variant << L":" << std::endl;
 				for (int k = 0; k < vec[i].size(); ++k) {
-					fout << current_task << (L". ") << vec[i][k];
+					fout << current_task << (L". ") << vec[i][k] << std::endl;
 					++current_task;
 				}
-				fout.close();
+				++current_variant;
 			}
+			fout.close();
 		}
 		else MessageBox::Show(L"Ошибка открытия файла вывода", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 	}
 }
 
-/*void ticket::randsortfout() {
-	std::vector <varsS> sorted;
-	std::vector <varsS> used;
-	varsS null{ null.diff = 0 };
-	varsS it;
-
-	for (int i = 0; i < vQ; ++i) {
-		sorted.push_back(null);
-		used.clear();
-		for (int k = i * vQ; k < i * vQ + qQ; ++k) {
-			it = vars_substr_vec(used, k);
-			sorted.push_back(it);
-			used.push_back(it);
-		}
-	}
-
-	output(sorted);
-} */
-
 void ticket::random_fprint() {
-	std::vector <std::vector <std::wstring>> sorted;
-	std::vector <std::wstring> init;
+	std::vector <std::vector <std::wstring>> sorted(variants_quantity);
+	std::cout << variants_quantity << " " << vars.size() << " " << tasks_per_module_quantity.size() << std::endl;
 
-	if (!tasks_per_module_quantity.size()) {
-		//make random without modules
-		MessageBox::Show(L"Код гавно", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
-	}
 
 	for (int i = 0; i < variants_quantity; ++i) {
-		sorted.push_back(init);
 		for (int k = 0; k < vars.size(); ++k) {
+			std::cout << std::endl;
 			for (int j = 0; j < tasks_per_module_quantity[k]; ++j) {
-				sorted[i].push_back(vars[k][random(0, vars[k].size())]);
+				std::cout << random(0, vars[k].size() - 1) << " Random" << std::endl;
+				sorted[i].push_back(vars[k][random(0, vars[k].size() - 1)]);
 			}
 		}
 	}
-
+	std::cout << sorted.size() << std::endl << std::endl;
 	fprint(sorted);
 }
 
@@ -293,22 +266,15 @@ System::Void CourseWork::MyForm::открытьToolStripMenuItem_Click(System::O
 		FilePath = marshal_as<std::string>(FilenameOpen);
 		//MessageBox::Show(this, FilenameOpen, L"Инфо", MessageBoxButtons::OK, MessageBoxIcon::Error);
 		short int err = processing_class.scan(FilePath);
-		if (err == 1) {
-			throw 1;
-		}
-		if (err == 2) {
-			throw 2;
+		if (err > 0) {
+			throw err;
 		}
 	}
 	catch (short int err) {
-		if (err == 1) {
-			MessageBox::Show(L"Ошибка открытия файла ввода (1)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
-			CourseWork::MyForm::Clear();
-		}
-		if (err == 2) {
-			MessageBox::Show(L"Ошибка, количество выводимых вопросов превышает их число (2)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
-			CourseWork::MyForm::Clear();
-		}
+		if (err == 1) MessageBox::Show(L"Ошибка открытия файла ввода (1)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		if (err == 2) MessageBox::Show(L"Ошибка, количество выводимых вопросов превышает их число (2)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		if (err == 3) MessageBox::Show(L"Обнаружен ввод без модуля (3)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		CourseWork::MyForm::Clear();
 	}
 	catch (Exception^ e) {
 		MessageBox::Show(this, L"Ошибка чтения файла (e)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
