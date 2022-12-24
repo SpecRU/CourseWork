@@ -10,9 +10,9 @@
 #include <io.h>
 #include <stringapiset.h>
 
-std::wstring utf8_decode(const std::wstring& instr);
+std::wstring utf8_decode(const std::wstring& instr) noexcept;
 
-std::string unicode2ansi(const std::wstring& wstr);
+std::string unicode2ansi(const std::wstring& wstr) noexcept;
 
 //bool operator<(const varsS& a, const varsS& b);
 
@@ -22,19 +22,26 @@ std::string unicode2ansi(const std::wstring& wstr);
 
 //void operator-=(std::vector<varsS>& a, const std::vector<varsS>& b);
 
+bool operator==(std::vector <std::wstring> a, std::vector <std::wstring> b) noexcept;
+
 class ticket {
-    std::vector <std::vector <std::wstring>> vars; //Список задач
+    std::vector <std::vector <std::wstring>> vars; //Список задач [["abc", "vrd"], ["f3f", "wefw"], [] ...]
     std::vector <int> tasks_per_module_quantity; //Список количества задач для вывода
     int variants_quantity = 0; //Количество вариантов
+    int max_variants_quantity = 0;
     char output_mode[1]{ 't' }; //Режим вывода
 public:
-    ~ticket() = default;
+    ~ticket() noexcept = default;
 
-    void clear();
+    void clear() noexcept;
 
-    void variants(const int& variants);
+    void calcualte_max_variants_quantity() noexcept;
 
-    void fprint_mode(const char& mode);
+    int max_variants() noexcept;
+
+    void variants(const int& variants) noexcept;
+
+    void fprint_mode(const char& mode) noexcept;
 
     void fprint(const std::vector <std::vector <std::wstring>>& vec);
 
@@ -42,9 +49,9 @@ public:
 
     int module(const std::wstring& str);
 
-    int size();
+    int size() noexcept;
 
-    void random_fprint();
+    void random_fprint() noexcept;
 
     //varsS vars_substr_vec(std::vector<varsS>& used, const int& seed);
 };

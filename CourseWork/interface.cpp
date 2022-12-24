@@ -11,7 +11,7 @@ using namespace System::IO;
 using namespace System::Diagnostics;
 using namespace System::ComponentModel;
 
-std::wstring utf8_decode(const std::wstring& instr) {
+std::wstring utf8_decode(const std::wstring& instr) noexcept {
 	const std::string str(instr.begin(), instr.end());
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
 	std::wstring wstrTo(size_needed, 0);
@@ -19,7 +19,7 @@ std::wstring utf8_decode(const std::wstring& instr) {
 	return wstrTo;
 }
 
-std::string unicode2ansi(const std::wstring& wstr) {
+std::string unicode2ansi(const std::wstring& wstr) noexcept {
 	int size_needed = WideCharToMultiByte(CP_ACP, 0, &wstr[0], -1, NULL, 0, NULL, NULL);
 	std::string strTo(size_needed, 0);
 	WideCharToMultiByte(CP_ACP, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
@@ -29,11 +29,21 @@ std::string unicode2ansi(const std::wstring& wstr) {
 
 std::random_device rd;
 std::mt19937 gen(rd());
-
-int random(int min, int max)
-{
+int random(int min, int max) {
 	std::uniform_int_distribution<> dist(min, max);
 	return dist(gen);
+}
+
+bool operator==(std::vector<std::wstring> a, std::vector<std::wstring> b) noexcept {
+	short int counter = 0;
+	if (a.size() == b.size()) {
+		for (int i = 0; i < a.size(); ++i) {
+			if (std::find(b.begin(), b.end(), a[i]) != b.end()) counter++;
+		}
+		if (counter == a.size()) return true;
+		return false;
+	}
+	else return false;
 }
 
 //bool operator<(const varsS& a, const varsS& b) { return a.diff < b.diff; }
@@ -58,14 +68,43 @@ int random(int min, int max)
 	}
 } */
 
-void ticket::variants(const int& variants) {
+void ticket::variants(const int& variants) noexcept {
 	variants_quantity = variants;
 }
 
-void ticket::clear() {
+void ticket::clear() noexcept {
 	vars.clear();
 	tasks_per_module_quantity.clear();
 	output_mode[1] = { 't' };
+}
+
+void ticket::calcualte_max_variants_quantity() noexcept {
+	int max = 0, nfact, nkfact, kfact;
+	std::vector <int> factorials = {1, 2};
+
+	for (const std::vector <std::wstring> i : vars) if (i.size() > max) max = i.size();
+	//std::cout << max << std::endl;
+	for (int i = 3; i <= max; ++i) factorials.push_back(factorials[i - 2] * i);
+	//std::cout << factorials[4 - 1] << std::endl;
+
+	nfact = factorials[vars[0].size() - 1];
+	nkfact = factorials[vars[0].size() - tasks_per_module_quantity[0] - 1];
+	kfact = factorials[tasks_per_module_quantity[0] - 1];
+
+	for (int i = 1; i < vars.size(); i++) {
+		nfact *= factorials[vars[i].size() - 1];
+		nkfact *= factorials[vars[i].size() - tasks_per_module_quantity[i] - 1];
+		kfact *= factorials[tasks_per_module_quantity[i] - 1];
+	}
+
+	//std::cout << nfact << " " << nkfact << " " << kfact << std::endl;
+	max_variants_quantity = nfact / (nkfact * kfact);
+	//std::cout << max_variants_quantity;
+}
+
+int ticket::max_variants() noexcept
+{
+	return max_variants_quantity;
 }
 
 
@@ -128,12 +167,11 @@ int ticket::module(const std::wstring& str) {
 	}
 }
 
-void ticket::fprint_mode(const char& mode) {
+void ticket::fprint_mode(const char& mode) noexcept {
 	output_mode[0] = mode;
 }
 
-int ticket::size()
-{
+int ticket::size() noexcept {
 	return vars.size();
 }
 
@@ -174,21 +212,41 @@ void ticket::fprint(const std::vector <std::vector <std::wstring>>& vec) {
 	}
 }
 
-void ticket::random_fprint() {
+void ticket::random_fprint() noexcept {
 	std::vector <std::vector <std::wstring>> sorted(variants_quantity);
-	std::cout << variants_quantity << " " << vars.size() << " " << tasks_per_module_quantity.size() << std::endl;
-
+	long int iter_quantity = 0;
+	//std::cout << variants_quantity << " " << vars.size() << " " << tasks_per_module_quantity.size() << std::endl;
 
 	for (int i = 0; i < variants_quantity; ++i) {
 		for (int k = 0; k < vars.size(); ++k) {
-			std::cout << std::endl;
 			for (int j = 0; j < tasks_per_module_quantity[k]; ++j) {
-				std::cout << random(0, vars[k].size() - 1) << " Random" << std::endl;
-				sorted[i].push_back(vars[k][random(0, vars[k].size() - 1)]);
+				std::wstring new_task;
+				while (true) {
+					new_task = vars[k][random(0, vars[k].size() - 1)];
+					if (std::find(sorted[i].begin(), sorted[i].end(), new_task) != sorted[i].end()) new_task = vars[k][random(0, vars[k].size() - 1)];
+					else break;
+				}
+				sorted[i].push_back(new_task);
+			}
+		}
+
+		/*for (int t = 0; t < sorted[i].size(); ++t) {
+			std::cout << unicode2ansi(utf8_decode(sorted[i][t])) << " i:" << i << std::endl;
+		}
+		std::cout << std::endl; */
+
+		if (i > 0) {
+			for (int k = 0; k < i; ++k) {
+				if (sorted[k] == sorted[i]) {
+					//std::cout << k << " " << i <<  " MATCH" << std::endl << std::endl;
+					sorted[i].clear();
+					--i;
+				}
 			}
 		}
 	}
-	std::cout << sorted.size() << std::endl << std::endl;
+
+	//std::cout << sorted.size() << " - Total variants" << std::endl << std::endl;
 	fprint(sorted);
 }
 
@@ -272,7 +330,7 @@ System::Void CourseWork::MyForm::открытьToolStripMenuItem_Click(System::O
 	}
 	catch (short int err) {
 		if (err == 1) MessageBox::Show(L"Ошибка открытия файла ввода (1)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
-		if (err == 2) MessageBox::Show(L"Ошибка, количество выводимых вопросов превышает их число (2)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		if (err == 2) MessageBox::Show(L"Количество выводимых вопросов превышает их число (2)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 		if (err == 3) MessageBox::Show(L"Обнаружен ввод без модуля (3)", L"Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 		CourseWork::MyForm::Clear();
 	}
@@ -305,7 +363,11 @@ System::Void CourseWork::MyForm::buttonEDIT_Click(System::Object^ sender, System
 System::Void CourseWork::MyForm::buttonEDIT_SAVE_Click(System::Object^ sender, System::EventArgs^ e)
 {
 	if (textBox1->Text == "0") {
-		MessageBox::Show(this, L"Введите количество больше 0", L"Внимание", MessageBoxButtons::OK, MessageBoxIcon::Warning);
+		MessageBox::Show(this, L"Введите число больше 0", L"Внимание", MessageBoxButtons::OK, MessageBoxIcon::Warning);
+		return System::Void();
+	}
+	if (stoi(marshal_as<std::string>(textBox1->Text)) > processing_class.max_variants()) {
+		MessageBox::Show(this, L"Невозможно сгенерировать столько вариантов", L"Внимание", MessageBoxButtons::OK, MessageBoxIcon::Warning);
 		return System::Void();
 	}
 	else {
@@ -488,6 +550,7 @@ System::Void CourseWork::MyForm::textBox1_ValueChanged(System::Object^ sender, S
 	else {
 		buttonDELETE->Enabled = true;
 		buttonEDIT->Enabled = false;
+		processing_class.calcualte_max_variants_quantity();
 		processing_class.variants(stoi(marshal_as<std::string>(textBox1->Text)));
 	}
 }
