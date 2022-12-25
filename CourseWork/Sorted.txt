@@ -1,90 +1,90 @@
 
 Вариант 1:
 1. Dog
-2. Dinya
-3. Arbuz
+2. Arbuz
+3. Car
 
 Вариант 2:
 1. Persik
-2. Garik
-3. Arbuz
+2. Dinya
+3. Garik
 
 Вариант 3:
-1. Persik
+1. Dog
+2. Car
+3. Dinya
+
+Вариант 4:
+1. Cat
 2. Car
 3. Garik
 
-Вариант 4:
-1. Persik
+Вариант 5:
+1. Cat
 2. Arbuz
 3. Dinya
 
-Вариант 5:
+Вариант 6:
 1. Cat
 2. Garik
-3. Arbuz
-
-Вариант 6:
-1. Dog
-2. Car
 3. Dinya
 
 Вариант 7:
 1. Dog
-2. Car
-3. Garik
+2. Dinya
+3. Arbuz
 
 Вариант 8:
 1. Cat
 2. Garik
-3. Dinya
+3. Arbuz
 
 Вариант 9:
-1. Cat
-2. Dinya
+1. Persik
+2. Garik
 3. Car
 
 Вариант 10:
-1. Dog
-2. Dinya
-3. Garik
-
-Вариант 11:
-1. Persik
+1. Cat
 2. Car
 3. Arbuz
 
+Вариант 11:
+1. Dog
+2. Arbuz
+3. Garik
+
 Вариант 12:
 1. Persik
-2. Dinya
-3. Car
+2. Arbuz
+3. Garik
 
 Вариант 13:
 1. Cat
-2. Arbuz
+2. Car
 3. Dinya
 
 Вариант 14:
-1. Dog
-2. Garik
+1. Persik
+2. Car
 3. Arbuz
 
 Вариант 15:
 1. Dog
-2. Car
-3. Arbuz
+2. Dinya
+3. Garik
 
 Вариант 16:
-1. Cat
-2. Car
-3. Arbuz
-
-Вариант 17:
-1. Cat
+1. Dog
 2. Garik
 3. Car
 
+Вариант 17:
+1. Persik
+2. Car
+3. Dinya
+
 Вариант 18:
 1. Persik
-2. Garik
+2. Arbuz
 3. Dinya

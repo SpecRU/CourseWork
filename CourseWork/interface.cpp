@@ -366,11 +366,11 @@ System::Void CourseWork::MyForm::buttonEDIT_SAVE_Click(System::Object^ sender, S
 		MessageBox::Show(this, L"Введите число больше 0", L"Внимание", MessageBoxButtons::OK, MessageBoxIcon::Warning);
 		return System::Void();
 	}
-	if (stoi(marshal_as<std::string>(textBox1->Text)) > processing_class.max_variants()) {
-		MessageBox::Show(this, L"Невозможно сгенерировать столько вариантов", L"Внимание", MessageBoxButtons::OK, MessageBoxIcon::Warning);
-		return System::Void();
-	}
 	else {
+		if (stoi(marshal_as<std::string>(textBox1->Text)) > processing_class.max_variants()) {
+			MessageBox::Show(this, L"Невозможно сгенерировать столько вариантов, вывод максимального количества", L"Внимание", MessageBoxButtons::OK, MessageBoxIcon::Warning);
+			processing_class.variants(processing_class.max_variants());
+		}
 		buttonDELETE_CONFIRM->Enabled = false;
 		buttonEDIT_SAVE->Enabled = false;
 		textBox1->Enabled = false;
