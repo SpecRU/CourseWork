@@ -14,14 +14,6 @@ std::wstring utf8_decode(const std::wstring& instr) noexcept;
 
 std::string unicode2ansi(const std::wstring& wstr) noexcept;
 
-//bool operator<(const varsS& a, const varsS& b);
-
-//bool operator==(const varsS& a, const varsS& b);
-
-//bool operator!=(const varsS& a, const varsS& b);
-
-//void operator-=(std::vector<varsS>& a, const std::vector<varsS>& b);
-
 bool operator==(std::vector <std::wstring> a, std::vector <std::wstring> b) noexcept;
 
 class ticket {
@@ -53,6 +45,5 @@ public:
 
     void random_fprint() noexcept;
 
-    //varsS vars_substr_vec(std::vector<varsS>& used, const int& seed);
 };
 extern ticket processing_class;

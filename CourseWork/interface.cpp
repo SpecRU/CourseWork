@@ -46,28 +46,6 @@ bool operator==(std::vector<std::wstring> a, std::vector<std::wstring> b) noexce
 	else return false;
 }
 
-//bool operator<(const varsS& a, const varsS& b) { return a.diff < b.diff; }
-//bool operator==(const varsS& a, const varsS& b) { return a.str == b.str && a.diff == b.diff && a.module == b.module; }
-//bool operator!=(const varsS& a, const varsS& b) { return a.str != b.str && a.diff != b.diff && a.module != b.module; }
-/*void operator-=(std::vector<varsS>& a, const std::vector<varsS>& b)
-{
-	std::vector<varsS>::iterator it = a.begin();
-	std::vector<varsS>::const_iterator it2 = b.begin();
-
-	while (it != a.end()) {
-		while (it2 != b.end() && it != a.end()) {
-			if (*it == *it2) {
-				it = a.erase(it);
-				it2 = b.begin();
-			}
-			else
-				++it2;
-		}
-		if (it != a.end()) ++it;
-		it2 = b.begin();
-	}
-} */
-
 void ticket::variants(const int& variants) noexcept {
 	variants_quantity = variants;
 }
@@ -88,13 +66,23 @@ void ticket::calcualte_max_variants_quantity() noexcept {
 	//std::cout << factorials[4 - 1] << std::endl;
 
 	nfact = factorials[vars[0].size() - 1];
-	nkfact = factorials[vars[0].size() - tasks_per_module_quantity[0] - 1];
+	if (vars[0].size() - tasks_per_module_quantity[0] - 1 < 0) nkfact = 0;
+	else nkfact = factorials[vars[0].size() - tasks_per_module_quantity[0] - 1];
 	kfact = factorials[tasks_per_module_quantity[0] - 1];
 
+	//std::cout << tasks_per_module_quantity.size() << " tasks quantity" << std::endl;
 	for (int i = 1; i < vars.size(); i++) {
-		nfact *= factorials[vars[i].size() - 1];
-		nkfact *= factorials[vars[i].size() - tasks_per_module_quantity[i] - 1];
-		kfact *= factorials[tasks_per_module_quantity[i] - 1];
+		//std::cout << i << "i" << std::endl;
+		//std::cout << vars[i].size() << " " << tasks_per_module_quantity[i] << " " << vars[i].size() - tasks_per_module_quantity[i] - 1 << " nkfact(i)" << std::endl;
+		if (nfact < 2) nfact = factorials[vars[i].size() - 1];
+		else nfact *= factorials[vars[i].size() - 1];
+
+		if (vars[i].size() - tasks_per_module_quantity[i] <= 0);
+		else if (nkfact < 2) nkfact = factorials[vars[i].size() - tasks_per_module_quantity[i] - 1];
+		else nkfact *= factorials[vars[i].size() - tasks_per_module_quantity[i] - 1];
+
+		if (kfact < 2) kfact = factorials[tasks_per_module_quantity[i] - 1];
+		else kfact *= factorials[tasks_per_module_quantity[i] - 1];
 	}
 
 	//std::cout << nfact << " " << nkfact << " " << kfact << std::endl;
@@ -288,11 +276,6 @@ System::Void CourseWork::MyForm::открытьToolStripMenuItem_Click(System::O
 {
 	processing_class.clear();
 	radioButtonRandom->Enabled = false;
-	radioButtonBalance->Enabled = false;
-	radioButtonDiff->Enabled = false;
-	radioButtonRandom->Checked = false;
-	radioButtonBalance->Checked = false;
-	radioButtonDiff->Checked = false;
 	checkBoxTXT->Enabled = false;
 	checkBoxRTF->Enabled = false;
 	buttonOutput->Enabled = false;
@@ -350,11 +333,7 @@ System::Void CourseWork::MyForm::buttonEDIT_Click(System::Object^ sender, System
 	textBox1->Enabled = true;
 	textBoxOutput->Enabled = true;
 	radioButtonRandom->Enabled = false;
-	radioButtonBalance->Enabled = false;
-	radioButtonDiff->Enabled = false;
 	radioButtonRandom->Checked = false;
-	radioButtonBalance->Checked = false;
-	radioButtonDiff->Checked = false;
 	checkBoxTXT->Enabled = false;
 	checkBoxRTF->Enabled = false;
 	buttonOutput->Enabled = false;
@@ -382,8 +361,6 @@ System::Void CourseWork::MyForm::buttonEDIT_SAVE_Click(System::Object^ sender, S
 		strwr->Close();
 		processing_class.clear();
 		processing_class.scan(FilePath);
-		radioButtonBalance->Enabled = false;
-		radioButtonDiff->Enabled = false;
 		radioButtonRandom->Enabled = true;
 	}
 }
@@ -408,11 +385,7 @@ System::Void CourseWork::MyForm::Clear()
 	buttonEDIT->Enabled = false;
 	buttonEDIT_SAVE->Enabled = false;
 	radioButtonRandom->Enabled = false;
-	radioButtonBalance->Enabled = false;
-	radioButtonDiff->Enabled = false;
 	radioButtonRandom->Checked = false;
-	radioButtonBalance->Checked = false;
-	radioButtonDiff->Checked = false;
 	buttonOutput->Enabled = false;
 	buttonDELETE_CONFIRM->Enabled = false;
 	checkBoxTXT->Enabled = false;
@@ -494,7 +467,7 @@ System::Void CourseWork::MyForm::buttonOutput_MouseClick(System::Object^ sender,
 //Все что связано с [Подсказками]
 System::Void CourseWork::MyForm::textBox11_MouseHover(System::Object^ sender, System::EventArgs^ e)
 {
-	toolTip1->Show(L"Отвечает за то, на сколько вариантов будет раздроблен текст", textBox11);
+	toolTip1->Show(L"Сколько вариантов необходимо сгенерировать и вывести", textBox11);
 	//return System::Void();
 }
 
@@ -537,21 +510,29 @@ System::Void CourseWork::MyForm::labelSTART_MouseHover(System::Object^ sender, S
 
 System::Void CourseWork::MyForm::labelOutputInfo_MouseHover(System::Object^ sender, System::EventArgs^ e)
 {
-	toolTip1->Show(L"Чтобы задать сложность предложения в нужной части текста напишите через пробел [ !(1-5)]\nВнимание! для работы [Баланс] и [по Сложности] перед вводом сложности обязательно должен быть минимум 1 символ\n(Образец ввода)\nЯблоко !5Машина\nЯблоко Машина !5\nЯбл !5око Машина\nНо не  !5Яблоко Машина!", labelOutputInfo);
+	//toolTip1->Show(L"Чтобы задать сложность предложения в нужной части текста напишите через пробел [ !(1-5)]\nВнимание! для работы [Баланс] и [по Сложности] перед вводом сложности обязательно должен быть минимум 1 символ\n(Образец ввода)\nЯблоко !5Машина\nЯблоко Машина !5\nЯбл !5око Машина\nНо не  !5Яблоко Машина!", labelOutputInfo);
 	//return System::Void();
 }
 
 //Все что связано с [textBox(Num)_ValueChanged]
 System::Void CourseWork::MyForm::textBox1_ValueChanged(System::Object^ sender, System::EventArgs^ e)
-{
-	if (textBox1->Text == "0") {
-		return System::Void();
+{	
+	try {
+		if (textBox1->Text == "0") {
+			return System::Void();
+		}
+		else {
+			buttonDELETE->Enabled = true;
+			buttonEDIT->Enabled = false;
+			processing_class.calcualte_max_variants_quantity();
+			processing_class.variants(stoi(marshal_as<std::string>(textBox1->Text)));
+		}
 	}
-	else {
+	catch (std::string a) {
 		buttonDELETE->Enabled = true;
 		buttonEDIT->Enabled = false;
 		processing_class.calcualte_max_variants_quantity();
-		processing_class.variants(stoi(marshal_as<std::string>(textBox1->Text)));
+		processing_class.variants(processing_class.max_variants());
 	}
 }
 
