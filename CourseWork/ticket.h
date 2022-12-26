@@ -4,7 +4,6 @@
 #include <vector>
 #include <algorithm>
 #include <fstream>
-#include <regex>
 #include <random>
 #include <fcntl.h>
 #include <io.h>

@@ -61,19 +61,14 @@ void ticket::calcualte_max_variants_quantity() noexcept {
 	std::vector <int> factorials = {1, 2};
 
 	for (const std::vector <std::wstring> i : vars) if (i.size() > max) max = i.size();
-	//std::cout << max << std::endl;
 	for (int i = 3; i <= max; ++i) factorials.push_back(factorials[i - 2] * i);
-	//std::cout << factorials[4 - 1] << std::endl;
 
 	nfact = factorials[vars[0].size() - 1];
 	if (vars[0].size() - tasks_per_module_quantity[0] - 1 < 0) nkfact = 0;
 	else nkfact = factorials[vars[0].size() - tasks_per_module_quantity[0] - 1];
 	kfact = factorials[tasks_per_module_quantity[0] - 1];
 
-	//std::cout << tasks_per_module_quantity.size() << " tasks quantity" << std::endl;
 	for (int i = 1; i < vars.size(); i++) {
-		//std::cout << i << "i" << std::endl;
-		//std::cout << vars[i].size() << " " << tasks_per_module_quantity[i] << " " << vars[i].size() - tasks_per_module_quantity[i] - 1 << " nkfact(i)" << std::endl;
 		if (nfact < 2) nfact = factorials[vars[i].size() - 1];
 		else nfact *= factorials[vars[i].size() - 1];
 
@@ -85,9 +80,7 @@ void ticket::calcualte_max_variants_quantity() noexcept {
 		else kfact *= factorials[tasks_per_module_quantity[i] - 1];
 	}
 
-	//std::cout << nfact << " " << nkfact << " " << kfact << std::endl;
 	max_variants_quantity = nfact / (nkfact * kfact);
-	//std::cout << max_variants_quantity;
 }
 
 int ticket::max_variants() noexcept
@@ -203,8 +196,7 @@ void ticket::fprint(const std::vector <std::vector <std::wstring>>& vec) {
 void ticket::random_fprint() noexcept {
 	std::vector <std::vector <std::wstring>> sorted(variants_quantity);
 	long int iter_quantity = 0;
-	//std::cout << variants_quantity << " " << vars.size() << " " << tasks_per_module_quantity.size() << std::endl;
-
+	
 	for (int i = 0; i < variants_quantity; ++i) {
 		for (int k = 0; k < vars.size(); ++k) {
 			for (int j = 0; j < tasks_per_module_quantity[k]; ++j) {
@@ -218,15 +210,9 @@ void ticket::random_fprint() noexcept {
 			}
 		}
 
-		/*for (int t = 0; t < sorted[i].size(); ++t) {
-			std::cout << unicode2ansi(utf8_decode(sorted[i][t])) << " i:" << i << std::endl;
-		}
-		std::cout << std::endl; */
-
 		if (i > 0) {
 			for (int k = 0; k < i; ++k) {
 				if (sorted[k] == sorted[i]) {
-					//std::cout << k << " " << i <<  " MATCH" << std::endl << std::endl;
 					sorted[i].clear();
 					--i;
 				}
@@ -234,18 +220,8 @@ void ticket::random_fprint() noexcept {
 		}
 	}
 
-	//std::cout << sorted.size() << " - Total variants" << std::endl << std::endl;
 	fprint(sorted);
 }
-
-/*varsS ticket::vars_substr_vec(std::vector<varsS>& used, const int& seed) {
-	std::vector <varsS> vec = vars;
-
-	if (used.size())vec -= used;
-
-	srand(unsigned(time(NULL)) + seed);
-	return vec[(rand() % vec.size() + 1) - 1];
-} */
 
 std::string FilePath;
 ticket processing_class;
@@ -388,6 +364,7 @@ System::Void CourseWork::MyForm::Clear()
 	radioButtonRandom->Checked = false;
 	buttonOutput->Enabled = false;
 	buttonDELETE_CONFIRM->Enabled = false;
+	buttonDELETE->Enabled = false;
 	checkBoxTXT->Enabled = false;
 	checkBoxRTF->Enabled = false;
 	//return System::Void();
@@ -467,7 +444,7 @@ System::Void CourseWork::MyForm::buttonOutput_MouseClick(System::Object^ sender,
 //Все что связано с [Подсказками]
 System::Void CourseWork::MyForm::textBox11_MouseHover(System::Object^ sender, System::EventArgs^ e)
 {
-	toolTip1->Show(L"Сколько вариантов необходимо сгенерировать и вывести", textBox11);
+	toolTip1->Show(L"Модули задаются вводом в формате Module *число* в отдельной строке, число - количество выводимых задач в каждом варианте", textBox11);
 	//return System::Void();
 }
 
